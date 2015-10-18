@@ -1,6 +1,8 @@
 <?php
 class Attempt extends AppModel {
 
+	public  $useTable = 'login_attempts';
+
 	public $displayField = 'ip';
 
 	public function count($ip, $action) {
@@ -11,6 +13,7 @@ class Attempt extends AppModel {
 				'expires >' => date('Y-m-d H:i:s')
 			)
 		));
+		
 	}
 
 	public function limit($ip, $action, $limit) {
@@ -35,9 +38,12 @@ class Attempt extends AppModel {
 		);
 	}
 
-	public function cleanup() {
+	public function cleanup($time = null) {
+		if(empty($time)){
+			$time = date('Y-m-d H:i:s', time()-60*60);
+		}
 		return $this->deleteAll(
-			array('expires <' => date('Y-m-d H:i:s')),
+			array('expires <' => $time),
 			false
 		);
 	}

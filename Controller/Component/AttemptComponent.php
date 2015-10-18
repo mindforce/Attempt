@@ -12,44 +12,56 @@
  **/
 
 class AttemptComponent extends Component {
+	public $settings = array(
+		'attemptLimit' => 5,
+		'attemptDuration' => '+1 hour',
+		
+	);
+
+	public function __construct(ComponentCollection $collection, $settings = array()) {
+		$settings = array_merge($this->settings, (array)$settings);
+		$this->Controller = $collection->getController();
+		parent::__construct($collection, $settings);
+	}
 
 	// Called after the Controller::beforeFilter() and before the controller action
-	public function startup($controller) {
+	public function startup(Controller $controller) {
 		$this->Controller = $controller;
 		$this->Attempt = ClassRegistry::init('Attempt.Attempt');
 	}
 
-	public function count($action) {
+	public function count() {
 		return $this->Attempt->count(
 			$this->Controller->request->clientIp(),
-			$action
+			$this->Controller->request['action']
 		);
 	}
 
-	public function limit($action, $limit = 5) {
+	public function limit() {
+		$this->cleanup();
 		return $this->Attempt->limit(
 			$this->Controller->request->clientIp(),
-			$action,
-			$limit
+			$this->Controller->request['action'],
+			$this->settings['attemptLimit']
 		);
 	}
 
-	public function fail($action, $duration = '+10 minutes') {
+	public function fail() {
 		return $this->Attempt->fail(
 			$this->Controller->request->clientIp(),
-			$action,
-			$duration
+			$this->Controller->request['action'],
+			$this->settings['attemptDuration']
 		);
 	}
 
-	public function reset($action) {
+	public function reset() {
 		return $this->Attempt->reset(
 			$this->Controller->request->clientIp(),
-			$action
+			$this->Controller->request['action']
 		);
 	}
 
-	public function cleanup() {
-		return $this->Attempt->cleanup();
+	public function cleanup($time = null) {
+		return $this->Attempt->cleanup($time);
 	}
 }
